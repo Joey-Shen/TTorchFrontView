@@ -54,7 +54,7 @@
     <p>A simple warning alert—check it out!</p>
 </div>
 <div style="width: 100%; height: 100%">
-    <div id="retPanel" style="float: left; width: 250px; height: 600px; margin-left: 15px; margin-right: 15px; display: none;">
+    <div id="retPanel" style="float: left; width: 300px; height: 600px; margin-left: 15px; margin-right: 15px; display: none;">
         <p>Result Panel</p>
         <div class="clusterize">
             <table class="pure-table pure-table-horizontal" style="width: 100%; text-align:center">
@@ -78,7 +78,7 @@
             <div style="margin-top: 5px; ">
                 <div class="progress">
                     <span class="badge badge-secondary" style="float: left">progress</span>
-                    <div id="progressBar" class="progress-bar progress-bar-striped" role="progressbar" style="width: 0; margin-left: 5px" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div id="progressBar" class="progress-bar progress-bar-striped" role="progressbar" style="width: 100%; margin-left: 5px" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             </div>
         </div>
@@ -105,17 +105,17 @@
 <script>
 
     const URL_PREFIX = "http://43.240.96.2";
-    const TRAJ_ID_API = "/TTorchServer/API/ID";
+    const TRAJ_ID_API = "/DEV/API/ID";
 
     const SIMILARITY_SEARCH = 0;
     const RANGE_SEARCH = 1;
     const PATH_QUERY = 2;
     const STRICT_PATH_QUERY = 3;
     const apiMap = {
-        0:"/TTorchServer/API/TKQ",
-        1:"/TTorchServer/API/RQ",
-        2:"/TTorchServer/API/PQ",
-        3:"/TTorchServer/API/SPQ"
+        0:"/DEV/API/TKQ",
+        1:"/DEV/API/RQ",
+        2:"/DEV/API/PQ",
+        3:"/DEV/API/SPQ"
     };
 
     $(document).ready(() => {
@@ -142,6 +142,7 @@
             // mapV API
             // draw retrieved trajecory map_data on map
             let times = [];
+            console.log("display map data on cluster: "+clusterId);
             let trajs = map_data[clusterId];
 
             trajs.forEach(traj =>{
@@ -220,13 +221,13 @@
         }
 
         function downloadFullTraj(curCluster, firstTime) {
+            console.log("curCluster: "+curCluster);
+            console.log("slot: "+slot[curCluster]);
             if (slot[curCluster]) return;
             slot[curCluster] = true;
             let table_max_idx = ids.length - 1;
             let begin_idx = curCluster * 100;
             let end_idx = (curCluster+1) * 100 - 1;
-            console.log("curCluster: "+curCluster);
-            console.log("slot: "+slot[curCluster]);
             console.log("begin_idx: "+begin_idx);
             if (begin_idx >= table_max_idx) return;
             if (table_max_idx < end_idx)
@@ -248,10 +249,7 @@
                 type: "GET",
                 success: function(res) {
                     map_data[curCluster] = res;
-                    for (let i = 0; i < res.length; i++)
-                        slot[i] = false;
-                    console.log(res);
-                    console.log(firstTime)
+                    console.log("find map_data for cluster: "+ curCluster);
                     if (firstTime)
                         displayOnMap(curCluster);
                 },
@@ -279,24 +277,27 @@
                     let progress = calc_progress(percentage);
                     let curClusterId = calc_cluster(progress);
                     console.log("curClusterId: "+curClusterId);
-                    console.log("overall progress "+percentage+"%" );
                     console.log("progress: "+(percentage * ids.length / 100));
 
-                    $('#progressBar').css('width', percentage+'%').attr('aria-valuenow', percentage);
+                    $('#progressBar').css('width', percentage+'%')
+                                     .attr('aria-valuenow', percentage)
+                                     .text(percentage.toFixed(2)+"%");
 
                     //2. download data for the first time
-                    if (first){
-                        downloadFullTraj(curClusterId, true);
-                        first = false;
-                    }
+                    // if (first){
+                    //     downloadFullTraj(curClusterId, true);
+                    //     first = false;
+                    // }
+                    downloadFullTraj(curClusterId, true);
 
                     // no need to require trajectories if the stuff has been cached on client side
                     if ( map_data[curClusterId + 1]) return;
                     if (maxClusterId !== curClusterId) {
                         //2. download data for next round
-                        if (progress % 100 === 1) {
-                            downloadFullTraj(curClusterId + 1, false);
-                        }
+                        // if (progress % 100 === 1) {
+                        //     downloadFullTraj(curClusterId + 1, false);
+                        // }
+                        downloadFullTraj(curClusterId + 1, false);
                     }
                 },
 
@@ -309,6 +310,8 @@
                     let progress = calc_progress(clusterize.getScrollProgress());
                     if (progress === 0) return;
 
+                    let curCluster = calc_cluster(progress);
+                    console.log("cluster changed, cur Cluster: "+ curCluster);
                     displayOnMap(calc_cluster(progress));
                 },
             }
@@ -668,7 +671,8 @@
                     clusterize.append(toTableData(ids));
                     maxClusterId = calc_cluster(ids.length - 1);
                     $("#retPanel").show();
-                    clusterize.scrollTop = -2;
+                    for (let i = 0; i < ids.length; i++)
+                        slot[i] = false;
                 },
                 error: function(xhr) {
                     badInfo("server unavailable");
