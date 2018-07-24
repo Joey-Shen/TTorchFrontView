@@ -67,7 +67,7 @@
             </table>
 
             <div id="scrollArea" class="clusterize-scroll">
-                <table class="pure-table pure-table-horizontal" style="width: 100%; height: 600px;text-align:center">
+                <table class="pure-table pure-table-horizontal" style="width: 100%; height:10px;text-align:center">
                     <tbody id="contentArea" class="clusterize-content">
                     <tr class="clusterize-no-data">
                         <td>Loading data…</td>
@@ -121,11 +121,16 @@
     $(document).ready(() => {
 
         //setup list view
-        let table_data = [];
+        let ids = [];
         let map_data = [];
+        let slot = [];
 
         function calc_cluster(progress) {
             return Math.floor(progress/100);
+        }
+
+        function calc_progress(overall_percentage){
+            return Math.floor(overall_percentage * ids.length / 100)
         }
 
         let mapvLayer1;
@@ -134,7 +139,6 @@
         let timeData;
 
         function displayOnMap(clusterId) {
-
             // mapV API
             // draw retrieved trajecory map_data on map
             let times = [];
@@ -215,47 +219,53 @@
             // mapvLayer.hide(); // 删除图层
         }
 
-        function downloadFullTraj(curCluster, display) {
-            if (map_data[curCluster]) return;
-
-            let table_max_idx = table_data.length - 1;
+        function downloadFullTraj(curCluster, firstTime) {
+            if (slot[curCluster]) return;
+            slot[curCluster] = true;
+            let table_max_idx = ids.length - 1;
             let begin_idx = curCluster * 100;
             let end_idx = (curCluster+1) * 100 - 1;
+            console.log("curCluster: "+curCluster);
+            console.log("slot: "+slot[curCluster]);
+            console.log("begin_idx: "+begin_idx);
             if (begin_idx >= table_max_idx) return;
-
             if (table_max_idx < end_idx)
                 end_idx = table_max_idx;
 
             let url = URL_PREFIX + TRAJ_ID_API;
 
             let arr = [];
-            //todo get table_data and request for full trajectory.
+            //todo get ids and request for full trajectory.
             for (let i = begin_idx; i <= end_idx; i++) {
-                arr.push(table_data[i].trajId);
+                arr.push(ids[i]);
             }
 
             $.ajax({
                 url: url,
-                data: arr,
+                data: {idSet : JSON.stringify(arr)},
                 dataType:'json',
                 cache: false,
                 type: "GET",
                 success: function(res) {
-                    if (!map_data[curCluster])
-                        map_data[curCluster] = res;
-
-                    if (display)
+                    map_data[curCluster] = res;
+                    for (let i = 0; i < res.length; i++)
+                        slot[i] = false;
+                    console.log(res);
+                    console.log(firstTime)
+                    if (firstTime)
                         displayOnMap(curCluster);
                 },
 
                 error: function(xhr) {
-                    badInfo("server unavailable");
+                    console.log("cannot download cluster: "+clusterize+" . Server unavailable");
                 }
             });
         }
 
         let firstTime = true;
-        let maxClusterId = calc_cluster(table_data.length - 1);
+        let first = true;
+        let maxClusterId;
+        let retNum;
 
         let clusterize = new Clusterize({
             scrollId: 'scrollArea',
@@ -263,24 +273,30 @@
             rows_in_block:100,          // display 100 records each time
             blocks_in_cluster:2,
             callbacks:{
-                scrollingProgress:(_progress)=>{
+                scrollingProgress:(percentage)=>{
 
                     // 1. display progress bar
-                    let progress = Math.round(_progress);
+                    let progress = calc_progress(percentage);
                     let curClusterId = calc_cluster(progress);
-                    if (maxClusterId === curClusterId) return;
-                    $('#progressBar').css('width', progress+'%').attr('aria-valuenow', progress);
-                    // no need to require trajectories if the stuff has been cached on client side
-                    if ( map_data[curClusterId + 1]) return;
+                    console.log("curClusterId: "+curClusterId);
+                    console.log("overall progress "+percentage+"%" );
+                    console.log("progress: "+(percentage * ids.length / 100));
+
+                    $('#progressBar').css('width', percentage+'%').attr('aria-valuenow', percentage);
 
                     //2. download data for the first time
-                    if (progress === 0 && (!map_data[0])){
+                    if (first){
                         downloadFullTraj(curClusterId, true);
+                        first = false;
                     }
 
-                    //2. download data for next round
-                    if (progress % 100 === 1) {
-                        downloadFullTraj(curClusterId + 1, false);
+                    // no need to require trajectories if the stuff has been cached on client side
+                    if ( map_data[curClusterId + 1]) return;
+                    if (maxClusterId !== curClusterId) {
+                        //2. download data for next round
+                        if (progress % 100 === 1) {
+                            downloadFullTraj(curClusterId + 1, false);
+                        }
                     }
                 },
 
@@ -290,9 +306,9 @@
                         firstTime = false;
                         return;
                     }
-
-                    let progress = Math.round(clusterize.getScrollProgress());
+                    let progress = calc_progress(clusterize.getScrollProgress());
                     if (progress === 0) return;
+
                     displayOnMap(calc_cluster(progress));
                 },
             }
@@ -478,15 +494,19 @@
         });
 
         function clear1() {
-            table_data = [];
+            ids = [];
             map_data = [];
+            slot = [];
             clusterize.clear();
-            $("retPanel").hide();
-            $("#input").val("");
+            $("#retPanel").hide();
+            //$("#input").val("");
             map.clearOverlays();
             let infoElement = $('#info');
             infoElement.text("");
             infoElement.hide();
+            first = true;
+            mapvLayer1 = undefined;
+            mapvLayer2 = undefined;
         }
 
         function badInfo( content) {
@@ -557,12 +577,12 @@
             clear1();
         });
 
-        function toTableData(tableData) {
+        function toTableData(ids) {
             let data = [];
-
-            tableData.forEach(record => {
-                data.push('<tr><td >'+record.id+'</td><td>'+ record.length +'</td></tr>');
-            })
+            let counter = 0;
+            ids.forEach(id => {
+                data.push('<tr><td height="10px">'+id+'</td><td></td></tr>');
+            });
 
             return data;
         }
@@ -625,12 +645,13 @@
                         return;
                     }
 
-                    let retObj = JSON.parse(res.queryResult);
+                    let retObj = res.retObj;
                     if (!retObj.mappingSucceed){
                         badInfo("Query can not be properly map-matched to road network!")
                         return;
-                    } 
+                    }
 
+                    clear1();
                     let retSize = parseInt(retObj.retSize);
                     if ( retSize === 0){
                         goodInfo("no trajectory meets the requirement");
@@ -642,14 +663,12 @@
                     } else{
                         goodInfo("There are "+retSize+" of qualified trajectories found.")
                     }
-
-                    table_data = retObj.pairs;
-                    map_data = [];
-                    clear1();
-                    clusterize.clear();
-                    clusterize.append(toTableData(table_data));
-                    clusterize.scrollTop = 1;
-                    $("retPanel").show();
+                    console.log(retObj.ids);
+                    ids = retObj.ids;
+                    clusterize.append(toTableData(ids));
+                    maxClusterId = calc_cluster(ids.length - 1);
+                    $("#retPanel").show();
+                    clusterize.scrollTop = -2;
                 },
                 error: function(xhr) {
                     badInfo("server unavailable");
