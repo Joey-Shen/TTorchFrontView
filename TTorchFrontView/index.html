@@ -27,7 +27,8 @@
         }
 
         .nav {
-            height: 100%;
+            margin-top: 10%;
+            margin-bottom: 10%;
             width: 280px;
             left: 0;
             top: 0;
@@ -132,18 +133,49 @@
 </head>
 <body>
 <nav class="nav">
-    <img style="margin-top:3px; margin-left: 85%; max-width: 45px; max-height: 35px" src="img/swipe.png"
-         alt="swipe image"/>
-    <div style="width: 100%; height: 100%; position: relative;">
-        <div style="width: 100%; height: 40%" id="setting">
+    <div style="width: 100%; height: 100%; ">
+        <div style="width: 100%; height: 50%; position: relative">
+            <img style=" margin-left:88%; margin-top:3px; max-width: 45px; max-height: 35px" src="img/swipe.png"
+                 alt="swipe image"/>
+            <button style="width: 100%; margin-top: -64px " type="button"  class="btn btn-success" disabled>
+                Similarity Search Config
+            </button>
 
+            <div style=" margin-left: 10%; width:80%; margin-top:10px; height: 40%">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Number of results(K): </span>
+                    </div>
+                    <input type="text" placeholder="15" class="form-control"
+                           aria-describedby="inputGroup-sizing-sm" id="k">
+                </div>
+
+                <div class="input-group" style="width: auto">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Index</span>
+                    </div>
+                    <select class="indexGroup" id="index" title="none" onchange="indexChange(this.value)">
+                        <option value="eii" selected>Edge based </option>
+                        <option value="levi">Vertex based</option>
+                    </select>
+                </div>
+
+                <div class="input-group" id="simWrapper" style="margin-top: 15px; display: none">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Measure</span>
+                    </div>
+                    <select class="simGroup" id="sim" title="none">
+                        <option value="DTW" selected>DTW </option>
+                        <option value="H">Hausdorff</option>
+                        <option value="F">Fréchet</option>
+                    </select>
+                </div>
+            </div>
         </div>
-
-        <hr style="margin-top: 5px">
+        <hr style="margin-top: 15px">
 
         <button style="margin-top:5px;width: 100%" type="button" class="btn btn-success" disabled>
             Result Panel <span style="margin-left: 3px" id="retSize" class="badge badge-danger"></span>
-            <span class="sr-only">unread messages</span>
         </button>
         <div id="retPanel"
             style="width: 100%; margin-top: 5px;">
@@ -206,7 +238,7 @@
 </div>
 <div style=" height: 100%; width: 100%" id="map"></div>
 <canvas id="canvas"></canvas>
-<a href="https://github.com/joanclaret"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+<a href="https://github.com/tgbnhy/torch-trajectory"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 <!-- JavaScript field -->
 <script src="https://code.jquery.com/jquery-3.3.1.js"
         integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
@@ -243,6 +275,14 @@
         2:"/API/PQ",
         3:"/API/SPQ"
     };
+
+    function indexChange(val){
+        console.log(val);
+        if (val === "eii")
+            $('#simWrapper').hide();
+        else
+            $('#simWrapper').show();
+    }
 
     $(document).ready(() => {
 
@@ -427,7 +467,7 @@
 
             //draw blue
             let options1 = {
-                strokeStyle: 'rgba(245,61,190,0.3)',
+                strokeStyle: 'rgba(245,61,190,0.5)',
                 //coordType: 'bd09mc',
                 //globalCompositeOperation: 'lighter',
                 shadowColor: 'rgba(53,57,255,0.4)',
@@ -529,7 +569,6 @@
 
 
         let displayed;
-
         let clusterize = new Clusterize({
             scrollId: 'scrollArea',
             contentId: 'contentArea',
@@ -614,7 +653,7 @@
 
         // baidu API
         let map = new BMap.Map("map");    // 创建Map实例
-        map.centerAndZoom(new BMap.Point(-8.630568, 41.154795), 12);  // 初始化地图,设置中心点坐标和地图级别
+        map.centerAndZoom(new BMap.Point(-8.594061, 41.162726), 13);  // 初始化地图,设置中心点坐标和地图级别
         map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
         var bottom_right_navigation = new BMap.NavigationControl({
             anchor: BMAP_ANCHOR_BOTTOM_RIGHT,
@@ -776,6 +815,7 @@
         });
 
         function clear1() {
+
             curClusterId = 0;
             ids = [];
             map_data = [];
@@ -877,7 +917,7 @@
         }
 
         $("#btnSearch").click(()=>{
-
+            
             let url = URL_PREFIX + apiMap[curBtnState];
             let data;
             console.log(url);
@@ -906,11 +946,40 @@
                     return;
                 }
 
+                //todo test
+                // let temp = JSON.parse(inputVal);
+                // let newArr = [];
+                // temp.forEach((pair)=>{
+                //     let t = [];
+                //     t.push(pair[1]);
+                //     t.push(pair[0]);
+                //     console.log(t);
+                //     newArr.push(t);
+                // });
+                //
+                // inputVal = JSON.stringify(newArr);
+
+
                 if (curBtnState === SIMILARITY_SEARCH) {
+
+                    let k = 15;
+                    let input  = $('#k').val();
+                    if ( input.length !== 0){
+                        let temp = Number(input);
+                        if (temp)
+                            k = temp;
+                    }
+
+                    let index = $('.indexGroup option:selected').val();
+                    let simFunc = ($('.simGroup option:selected').val());
+                    
                     data = {
                         query: inputVal,
-                        k: 5
-                    }
+                        k: k,
+                        index: index,
+                        measure: simFunc
+                    };
+
                 }else {
                     data = {query: inputVal};
                 }
@@ -955,9 +1024,14 @@
                     }
 
                     ids = retObj.ids;
+                    console.log("ids: "+ids);
                     for (let i = 0; i < ids.length; i++)
                         slot[i] = false;
 
+                    if (res.queryType === "TK") {
+                        console.log(res.queryType);
+                        ids.reverse();
+                    }
                     clusterize.append(toListData(ids));
 
                     downloadFullTraj(curClusterId, true);
