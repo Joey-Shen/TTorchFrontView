@@ -149,18 +149,24 @@
                     <button style="margin-top:5px;width: 100%" type="button" class="btn btn-success" disabled>
                         Result Panel <span style="margin-left: 3px" id="retSize" class="badge badge-danger"></span>
                     </button>
-                    <div id="nonRQ" style="width:100% ; display: none; text-align: center">
-                        <div class="custom-control custom-checkbox">
+                    <div  style="width:100% ; text-align: center">
+                        <div class="custom-control custom-checkbox" id="div_showRaw" style="display: none">
                             <input type="checkbox" class="custom-control-input" id="showRaw" checked>
-                            <label style="width: 180px" class="custom-control-label" for="showRaw">display raw path</label>
+                            <label style="width: 250px" class="custom-control-label" for="showRaw">display raw path</label>
                         </div>
-                        <div class="custom-control custom-checkbox">
+                        <div class="custom-control custom-checkbox" id="div_showMapped" style="display: none">
                             <input type="checkbox" class="custom-control-input" id="showMapped" checked>
-                            <label style="width: 180px" class="custom-control-label" for="showMapped">display mapped path</label>
+                            <label style="width: 250px" class="custom-control-label" for="showMapped">display mapped path</label>
                         </div>
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="hideRet">
-                            <label style="width: 180px" class="custom-control-label" for="hideRet">hide results</label>
+
+                        <div class="custom-control custom-checkbox" id="div_showRep" style="display: none">
+                            <input type="checkbox" class="custom-control-input" id="showRep" checked>
+                            <label style="width: 250px" class="custom-control-label" for="showRep">show representative trajectories</label>
+                        </div>
+
+                        <div class="custom-control custom-checkbox" id="div_hideRet" style="display: none">
+                            <input type="checkbox" class="custom-control-input" id="hideRet" checked>
+                            <label style="width: 250px" class="custom-control-label" for="hideRet">hide results</label>
                         </div>
                     </div>
                 </div>
@@ -194,7 +200,15 @@
 
     <button class="btn btn-outline-danger" id="btnClear" type="button" style="margin-left: 5px">Clear All</button>
 </div>
-
+<div class="dropdown" style="position:absolute; margin-top: 20px; margin-left:45%; z-index: 3 ">
+    <button class="btn btn-light dropdown-toggle" type="button" id="cityMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Dropdown button
+    </button>
+    <div class="dropdown-menu" aria-labelledby="cityMenu">
+        <a class="dropdown-item" href="#" >Beijing</a>
+        <a class="dropdown-item" href="#">Porto</a>
+    </div>
+</div>
 <div style="position:absolute; top: 40px; width: 70%; margin-left:15%; margin-right: 15%; z-index:3">
     <div id="info" class="alert alert-warning" role="alert"
          style="height: 45px;position:absolute; z-index:3; margin-top: 10px; margin-left: 25%; margin-right: 25%; width: 55%; font-size: medium; text-align:center; display: none ">
@@ -207,9 +221,8 @@
 <script src="https://code.jquery.com/jquery-3.3.1.js"
         integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
         crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js"
-        integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em"
-        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=o55gGAr8In322oxznMl5cojFABFo5hjE"></script>
 <script type="text/javascript"
         src="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js"></script>
@@ -246,6 +259,7 @@
 
     //todo function toListData
     function toRetListData(ids) {
+        console.log(ids);
         let data = [];
         let counter = 0;
         ids.forEach(id => {
@@ -258,6 +272,7 @@
                 counter = 0;
         });
 
+        console.log(data);
         return data;
     }
 
@@ -313,7 +328,7 @@
             '<button  class="btn btn-secondary btn-xs" style="font-size: x-small" disabled>NaN</button>' +
             '</td>'+
             '<td width="50px" style="padding-bottom:  0.5ex">' +
-            '<input  type="checkbox" name="com_rect" value="'+ counter_rect + '">' +
+            '<input  type="checkbox" name="com_rect" value="'+ counter_rect + '" checked>' +
             '</td>' +
             '</tr>';
 
@@ -426,6 +441,29 @@
 
         //todo definition of function
 
+        function optionsForSim(){
+            $('#div_showMapped').show();
+            $('#div_showRaw').show();
+            $('#div_hideRet').show();
+            $('#div_showRep').hide();
+        }
+
+        function optionsForBool(hasPath){
+            $('#div_showRep').show();
+            $('#div_hideRet').show();
+
+            $('#hideRet').prop('checked', true);
+            hide = true;
+
+            if (hasPath) {
+                $('#div_showMapped').show();
+                $('#div_showRaw').show();
+            }else{
+                $('#div_showMapped').hide();
+                $('#div_showRaw').hide();
+            }
+        }
+
         function clearAll() {
             clearRetPanel();
             clusterize_sim.clear();
@@ -463,7 +501,11 @@
             map_data = [];
             slot = [];
             clusterize_ret.clear();
-            $("#nonRQ").hide();
+            $('#div_hideRet').hide();
+            $('#div_showRaw').hide();
+            $('#div_showMapped').hide();
+            $('#div_showRep').hide();
+
 
             let infoElement = $('#info');
             infoElement.text("");
@@ -472,7 +514,7 @@
             hide = false;
         }
 
-        function downloadFullTraj(curCluster, firstTime) {
+        function downloadFullTraj(curCluster, _display, hide) {
 
             if (slot[curCluster]) return;
             console.log("download trajectory for cluster: "+curCluster);
@@ -495,15 +537,18 @@
 
             $.ajax({
                 url: url,
-                data: {idSet : JSON.stringify(arr)},
+                data: {
+                    idSet : JSON.stringify(arr),
+                    city : curCity
+                },
                 dataType:'json',
                 cache: false,
                 type: "GET",
                 success: function(res) {
                     map_data[curCluster] = res;
                     console.log("find map_data for cluster: "+ curCluster);
-                    if (firstTime) {
-                        display();
+                    if (_display) {
+                        display(hide);
                         displayed = curCluster;
                     }
                 },
@@ -571,7 +616,7 @@
             // mapvLayer.hide(); // 删除图层
         }
 
-        function display() {
+        function display(hide) {
             let trajs = map_data[curClusterId];
             let times = [];
             console.log(trajs);
@@ -601,6 +646,60 @@
                 timeData.set(times);
             }
 
+            if (hide){
+                lineLayer.hide();
+                animationLayer.hide();
+                hide = true;
+            }else{
+                lineLayer.show();
+                animationLayer.show();
+                hide = false;
+            }
+        }
+        
+        function displayReprep(data){
+
+            let trajs = data;
+            let times = [];
+            console.log(trajs);
+            trajs.forEach(traj =>{
+
+                let coordsArr = traj.geometry.coordinates;
+                let i;
+                for( i = 0; i < coordsArr.length; i ++){
+                    times.push({
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [coordsArr[i][0], coordsArr[i][1]]
+                        },
+                        count:1,
+                        time: i
+                    })
+                }
+            });
+
+            if (!reprepLayer) {
+                reprepData = new mapv.DataSet(trajs);
+                reprepAniData = new mapv.DataSet(times);
+                reprepLayer = new mapv.baiduMapLayer(map, reprepData, mapv_option_line_single);
+                reprepAniLayer = new mapv.baiduMapLayer(map, reprepAniData, mapv_option_single_line_dot_animation);
+            }else{
+                reprepData.set(trajs);
+                reprepAniData.set(times);
+            }
+
+            if (lineLayer) {
+                hide = true;
+                lineLayer.hide();
+                animationLayer.hide();
+            }
+
+            if (singleLineLayer) {
+                singleLineLayer.hide();
+                singleAnimationLayer.hide();
+            }
+            reprepLayer.show();
+            reprepAniLayer.show();
         }
 
         function displaySingle(index) {
@@ -644,8 +743,17 @@
             hide = true;
             lineLayer.hide();
             animationLayer.hide();
+            $('#hideRet').prop('checked', true);
+
+            if (reprepLayer) {
+                reprepLayer.hide();
+                reprepAniLayer.hide();
+                $('#showRep').prop('checked', false);
+            }
+            
             singleLineLayer.show();
             singleAnimationLayer.show();
+
             //rawLayer.show();
             //mappedLayer.show();
         }
@@ -707,7 +815,6 @@
             mappedLayer.hide();
         }
 
-
         //todo similarity scroll area
         let clusterize_sim = new Clusterize({
             scrollId: 'topK_scrollArea',
@@ -746,20 +853,30 @@
 
                     // no need to require trajectories if the stuff has been cached on client side
                     if (!slot[curClusterId])
-                        downloadFullTraj(curClusterId, false);
+                        downloadFullTraj(curClusterId, false, false);
 
                     if (displayed !== curClusterId){
                         if (map_data[curClusterId]) {
-                            display();
+                            display(false);
                             displayed = curClusterId;
                         }
                     }
 
                     if ( !slot[curClusterId + 1]) {
                         if (maxClusterId !== curClusterId) {
-                            downloadFullTraj(curClusterId + 1, false);
+                            downloadFullTraj(curClusterId + 1, false, false);
                         }
                     }
+
+                    if (reprepLayer) {
+
+                        if ($('#showRep').is(':checked')) {
+                            $('#showRep').prop('checked', false);
+                            reprepLayer.hide();
+                            reprepAniLayer.hide();
+                        }
+                    }
+
 
                     if(hide){
                         lineLayer.show();
@@ -782,21 +899,20 @@
                     let progress = calc_progress(clusterize_ret.getScrollProgress());
                     if (progress ===0 ) return;
 
-                    let curCluster = calc_cluster(progress);
-                    curClusterId = curCluster;
+                    curClusterId = calc_cluster(progress);;
                     console.log("cluster changed. cur cluster id: "+curClusterId);
 
                     if(map_data[curClusterId]) {
-                        display();
+                        display(false);
                         displayed = curClusterId;
                     }
 
-                    $('.checkable').click((e)=>{
+                    $('.ret_checkable').click((e)=>{
                         let index = parseInt($(e.target).attr("value"));
-                        console.log("clicked: ");
-                        $('#hideRet').prop('checked', false); // Unchecks it
+                        console.log("set checkable");
                         displaySingle(index);
                     });
+
                 },
             }
         });
@@ -854,7 +970,7 @@
 
         // baidu API
         let map = new BMap.Map("map");    // 创建Map实例
-        map.centerAndZoom(new BMap.Point(-8.594061, 41.162726), 13);  // 初始化地图,设置中心点坐标和地图级别
+        map.centerAndZoom(new BMap.Point(-8.594061, 41.162726), 14);  // 初始化地图,设置中心点坐标和地图级别
         map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
         let bottom_right_navigation = new BMap.NavigationControl({
             anchor: BMAP_ANCHOR_BOTTOM_RIGHT,
@@ -881,6 +997,27 @@
             },
             polylineOptions: pathStyle,
             rectangleOptions: rectStyle
+        });
+
+        //todo change city
+        $('#cityMenu').text("City: Porto");
+        $('.dropdown .dropdown-menu .dropdown-item').click(function(){
+            let text = $(this).text();
+            if (text === "Beijing"){
+                if (curCity !== BEIJING) {
+                    clearAll();
+                    map.centerAndZoom(new BMap.Point(116.3975, 39.9087), 12);  // 初始化地图,设置中心点坐标和地图级别
+                    curCity = BEIJING;
+                }
+            }else if(text === "Porto"){
+                if (curCity !== PORTO) {
+                    clearAll();
+                    curCity = PORTO;
+                    map.centerAndZoom(new BMap.Point(-8.594061, 41.162726), 13);  // 初始化地图,设置中心点坐标和地图级别
+                }
+            }
+            console.log(curCity);
+            $('#cityMenu').text("City: " + text);
         });
 
         //todo complete line
@@ -928,7 +1065,6 @@
 
             rect_label.push(label);
             rect_polygons.push(rect);
-            rect.hide();
             clusterize_com.prepend([toRect(rect)]);
 
             setClickable();
@@ -960,6 +1096,21 @@
                 mappedLayer.show();
             } else {
                 mappedLayer.hide();
+            }
+        });
+        
+        $('#showRep').change(function(){
+            if($(this).is(':checked')){
+                reprepLayer.show();
+                reprepAniLayer.show();
+                if (!hide) {
+                    console.log("there")
+                    $('#hideRet').prop('checked', true); // Unchecks it
+                    $('#hideRet').trigger("change");
+                }
+            }else{
+                reprepLayer.hide();
+                reprepAniLayer.hide();
             }
         });
 
@@ -1020,7 +1171,8 @@
                 measure: simFunc,
                 epsilon: epsilon,
                 start: start,
-                end: end
+                end: end,
+                city: curCity
             };
 
             console.log(data);
@@ -1035,6 +1187,7 @@
                 type: "GET",
                 success: function(res) {
                     // clearAll();
+                    clearRetPanel();
 
                     $('.path_checkable').each(function(i, obj){
                         let btn = $(this);
@@ -1067,8 +1220,6 @@
                         return;
                     }
 
-                    clearRetPanel();
-
                     if (retSize > 100){
                         goodInfo("There are "+retSize+" of qualified trajectories found, 100 of them are displayed.");
                     } else{
@@ -1080,7 +1231,7 @@
                     for (let i = 0; i < ids.length; i++)
                         slot[i] = false;
 
-                    $("#nonRQ").show();
+                    optionsForSim();
                     makeRaw([retObj.rawTrajectory]);
                     makeMapped([retObj.mappedTrajectory]);
 
@@ -1093,14 +1244,20 @@
 
                     clusterize_ret.append(toRetListData(ids));
 
-                    downloadFullTraj(curClusterId, true);
+                    downloadFullTraj(curClusterId, true, false);
                     maxClusterId = calc_cluster(ids.length - 1);
                     $("#retSize").text(ids.length);
                     $(".retPanel").show();
+                    $('#hideRet').prop('checked', false);
+
+                    if (reprepLayer){
+                        reprepLayer.hide();
+                        reprepAniLayer.hide();
+                    }
 
                     $('.ret_checkable').click((e)=>{
                         let index = parseInt($(e.target).attr("value"));
-                        $('#hideRet').prop('checked', false); // Unchecks it
+                        console.log("index: "+index);
                         displaySingle(index);
                     });
                 },
@@ -1109,7 +1266,6 @@
                 }
             });
         });
-
 
         $('#bool_search').click(()=>{
 
@@ -1196,7 +1352,8 @@
             let data = {
                 items: JSON.stringify(items),
                 start: start,
-                end: end
+                end: end,
+                city: curCity
             };
 
             if (!hasQuery){
@@ -1204,7 +1361,7 @@
                 return;
             }
 
-            clearRetPanel();
+            goodInfo("The query is under processing, please wait...");
 
             $.ajax({
                 url: url,
@@ -1215,6 +1372,17 @@
                 contentType:"application/json",
                 success: function(res) {
 
+                    clearRetPanel();
+
+                    console.log("result: " + res);
+                    ids = JSON.parse(res.ids);
+                    let rets = JSON.parse(res.arr);
+                    let mapvCluster = JSON.parse(res.cluster);
+                    console.log("result trajectory ids: "+ ids);
+                    console.log("mapv cluster size: "+mapvCluster.length);
+
+
+                    //hide non query paths and windows
                     $('.path_checkable').each(function(i, obj){
                         let btn = $(this);
                         if (btn.text() === "on display"){
@@ -1235,19 +1403,14 @@
                        if (!selectedWindow_index_set.has(index) && btn.text() === "on display"){
                            btn.click();
                        }
-
                     });
 
-                    // clearAll();
-                    console.log(res);
                     let hasPathQ = false;
                     let raw = [];
                     let mapped = [];
-                    let set1 = new Set();
-                    let set2 = new Set();
 
-                    let counter = 1;
-                    res.forEach((ret) => {
+                    //construct result arrays
+                    rets.forEach((ret) => {
                         if (ret.queryType !== "RQ") {
 
                                 hasPathQ = true;
@@ -1255,42 +1418,12 @@
                             if (ret.retObj.mappingSucceed){
                                 raw.push(ret.retObj.rawTrajectory);
                                 mapped.push(ret.retObj.mappedTrajectory);
+                            }
 
-                                if (counter === 1) {
-                                    ret.retObj.ids.forEach((id) => {
-                                        set1.add(id);
-                                    })
-                                } else {
-                                    set2 = new Set();
-                                    ret.retObj.ids.forEach((id) => {
-                                        if (set1.has(id)) {
-                                            set2.add(id);
-                                        }
-                                    });
-                                    set1 = set2;
-                                }
-                            }
-                        }else{
-                            if (counter === 1) {
-                                ret.retObj.ids.forEach((id) => {
-                                    set1.add(id);
-                                })
-                            } else {
-                                set2 = new Set();
-                                ret.retObj.ids.forEach((id) => {
-                                    if (set1.has(id)) {
-                                        set2.add(id);
-                                    }
-                                });
-                                set1 = set2;
-                            }
                         }
-                        counter++;
                     });
 
-                    ids = Array.from(set1);
-                    console.log(ids.length);
-                    console.log(ids);
+                    console.log("result trajectory size: " + ids.length);
 
                     if (hasPathQ) {
                         makeRaw(raw);
@@ -1301,32 +1434,49 @@
                         if ($('#showMapped').is(':checked')) mappedLayer.show();
 
                     }
-                    
-                    if (ids.length > 100){
+
+                    if (ids.length === 0) {
+                        clearRetPanel();
+                        goodInfo("no trajectories meet the requirement");
+                        return;
+                    }else if (ids.length > 100){
                         goodInfo("There are "+ids.length+" of qualified trajectories found, 100 of them are displayed.");
                     } else{
                         goodInfo("There are "+ids.length+" of qualified trajectories found.")
                     }
 
-                    console.log("ids: "+ids);
-                    for (let i = 0; i < ids.length; i++)
+                    let temp = Math.ceil(ids.length / 100)+1;
+                    for (let i = 0; i < temp; i++)
                         slot[i] = false;
 
                     clusterize_ret.append(toRetListData(ids));
+                    console.log("append ids to listView");
 
-                    downloadFullTraj(curClusterId, true);
                     maxClusterId = calc_cluster(ids.length - 1);
                     $("#retSize").text(ids.length);
                     $(".retPanel").show();
 
+                    optionsForBool(hasPathQ);
+                    if (mapvCluster.length === 0){
+                        $('#showRep').prop('checked', false); // Unchecks it
+                        $('#div_showRep').hide();
+                        $('#hideRet').prop('checked', false);
+                        downloadFullTraj(curClusterId, true, false);
+                    }else{
+                        //display reprepsentative.
+                        displayReprep(mapvCluster);
+                        $('#showRep').prop('checked', true); // Unchecks it
+                        $('#hideRet').prop('checked', true); // Unchecks it
+                        downloadFullTraj(curClusterId, true, true);
+                    }
+
                     $('.ret_checkable').click((e)=>{
                         let index = parseInt($(e.target).attr("value"));
-                        $('#hideRet').prop('checked', false); // Unchecks it
                         displaySingle(index);
                     });
                 },
                 error: function(xhr) {
-                    console.log(xhr)
+                    console.log(xhr);
                     badInfo("server unavailable");
                 }
             });

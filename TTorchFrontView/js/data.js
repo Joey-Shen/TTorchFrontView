@@ -1,10 +1,14 @@
-const APP_NAME = "/DEV";
+const APP_NAME = "/TTorchServer";
 const URL_PREFIX = "http://43.240.96.2" + APP_NAME;
 const TRAJ_ID_API = "/API/ID";
 const API_SIM = "/API/TKQ";
 const API_MULTI = "/API/MULTI";
-
 const INIT_FILE = "/data/init.txt";
+const BEIJING = "b";
+const PORTO = "p";
+
+// current city
+let curCity = PORTO;
 
 // for remember current state
 let counter_line = 0;
@@ -21,6 +25,11 @@ let ids = [];
 let map_data = [];
 let slot = [];
 let hide = false;
+
+let reprepLayer;
+let reprepAniLayer;
+let reprepData;
+let reprepAniData;
 
 let rawLayer;
 let mappedLayer;
