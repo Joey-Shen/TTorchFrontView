@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>TTorch</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css"
+          integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+    <link rel="stylesheet" href="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/clusterize.js/0.18.0/clusterize.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css"
+          integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+    <link rel="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.css"/>
+    <link rel="stylesheet" href="style.css">
+
+
+</head>
+<body>
+
+<nav class="nav">
+
+    <button style="width: 100%; height: 50px" type="button" class="btn btn-success" disabled>
+        Road Traffic Prediction
+    </button>
+
+    <svg style="margin: 10px 2.5%;" width="350" height="250"></svg>
+
+    <button style="width: 100%; height: 50px" type="button" class="btn btn-success" disabled>
+        Traffic Light Control
+    </button>
+   
+    <div class="clusterize" style="margin-left: 15px">
+
+        <table style="width:100%">
+            <thead>
+            <tr>
+                <td width="70px">Road Id</td>
+                <td width="80px">Direction</td>
+                <td width="70px">volume</td>
+                <td width="70px">avg time</td>
+            </tr>
+            </thead>
+        </table>
+
+        <div style="margin-top: 0px" id="ret_scrollArea" class="clusterize-scroll ">
+            <table align="center">
+                <tbody id="ret_contentArea" class="clusterize-content">
+                <tr>
+                <td width=" 70px" style="padding-bottom: 1ex"><span style="color:blue;font-weight:bold; font-size: small">road: 0</span></td>
+                <td width = "80px" style="padding-bottom: 1ex"><button  class="btn btn-success btn-xs" style="font-size: x-small">outgoing</button></td>
+                <td width = "70px" style="padding-bottom: 1ex"><span>34</span></td>
+                <td width = "70px" style="padding-bottom: 1ex"><span>336s </span></td>
+                </tr>
+                <tr>
+                    <td width=" 70px" style="padding-bottom: 1ex"><span style="color:blue;font-weight:bold; font-size: small">road: 0</span></td>
+                    <td width = "80px" style="padding-bottom: 1ex"><button  class="btn btn-success btn-xs" style="font-size: x-small">incoming</button></td>
+                    <td width = "70px" style="padding-bottom: 1ex"><span>53</span></td>
+                    <td width = "70px" style="padding-bottom: 1ex"><span>362s </span></td>
+                </tr>
+                <tr>
+                    <td width=" 70px" style="padding-bottom: 1ex"><span style="color:blue;font-weight:bold; font-size: small">road: 1</span></td>
+                    <td width = "80px" style="padding-bottom: 1ex"><button  class="btn btn-success btn-xs" style="font-size: x-small">incoming</button></td>
+                    <td width = "70px" style="padding-bottom: 1ex"><span>62</span></td>
+                    <td width = "70px" style="padding-bottom: 1ex"><span>533s </span></td>
+                </tr>
+                <tr>
+                    <td width=" 70px" style="padding-bottom: 1ex"><span style="color:blue;font-weight:bold; font-size: small">road: 1</span></td>
+                    <td width = "80px" style="padding-bottom: 1ex"><button  class="btn btn-success btn-xs" style="font-size: x-small">outgoing</button></td>
+                    <td width = "70px" style="padding-bottom: 1ex"><span>79</span></td>
+                    <td width = "70px" style="padding-bottom: 1ex"><span>422s </span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</nav>
+<div style="position:absolute; top: 40px; width: 70%; margin-left:15%; margin-right: 15%; z-index:3">
+    <div id="info" class="alert alert-warning" role="alert"
+         style="height: 45px;position:absolute; z-index:3; margin-top: 25px; margin-left: 25%; margin-right: 25%; width: 55%; font-size: medium; text-align:center; display: none">
+    </div>
+</div>
+<div style="position:absolute; margin-top: 20px; margin-left: 20px; z-index:3">
+    <a href="#" id="btn_nav" class="btn btn-outline-info ssm-toggle-nav"
+       style="padding-bottom: 1px; padding-left: 10px; padding-right: 10px; float: left; height: 38px">
+        <object id="svg1" data="./img/gear.svg" type="image/svg+xml" style="padding-right: 3px"></object>
+        Search Panel
+    </a>
+
+    <button class="btn btn-outline-danger" id="btnClear" type="button" style="margin-left: 5px">Clear All</button>
+</div>
+
+<div style=" height: 100%; width: 100%" id="map"></div>
+<canvas id="canvas"></canvas>
+<a href="https://github.com/tgbnhy/torch-trajectory"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+<div style="position: absolute; top: 0; right: 0; border: 0;">
+<canvas id="clock" width="150" height="150"
+        style=" margin-left: 80px;">
+</canvas>
+</div>
+<!-- JavaScript field -->
+<script src="https://code.jquery.com/jquery-3.3.1.js"
+        integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=o55gGAr8In322oxznMl5cojFABFo5hjE"></script>
+<script type="text/javascript"
+        src="http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js"></script>
+<script type="text/javascript"
+        src="http://mapv.baidu.com/build/mapv.min.js"></script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/clusterize.js/0.18.0/clusterize.js"></script>
+<!-- touchSwipe library -->
+<script src="http://labs.rampinteractive.co.uk/touchSwipe/jquery.touchSwipe.min.js"></script>
+<!-- Slider Javascript file -->
+<script type='text/javascript' src='./js/jquery.slideandswipe.js'></script>
+<!-- my script -->
+<script type="text/javascript" src="js/nantong.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.6/nv.d3.min.js"></script>
+
+<script>
+
+    //display news
+    function badInfo( content) {
+        let element = $('#info');
+        element.removeClass("alert-success").addClass("alert-warning")
+        element.text(content);
+        element.show();
+    }
+
+    function goodInfo( content){
+        let element = $('#info');
+        element.removeClass("alert-warning").addClass("alert-success")
+        element.text(content);
+        element.show();
+    }
+
+    $(document).ready(() => {
+
+        function toMapVLine(cam1, cam2){
+            return {
+                geometry: {
+                    type: 'LineString',
+                        coordinates: [
+                        [cam1.location.lng, cam1.location.lat],
+                        [cam2.location.lng, cam2.location.lat]
+                    ]
+                },
+            }
+        }
+
+        $('.nav').slideAndSwipe();
+        $('.retPanel').hide();
+        $("#btn_nav").click();
+
+        var canvas = document.getElementById("clock");
+        var ctx = canvas.getContext("2d");
+        var radius = canvas.height / 2;
+        ctx.translate(radius, radius);
+        radius = radius * 0.90
+        setInterval(drawClock, 1000);
+
+        function toListRet(id, direction, volume, avgTime){
+            let tr =
+                '<tr>' +
+                '<td width="70px" style="padding-bottom: 1ex">' +
+                '<span style="color:blue;font-weight:bold; font-size: small">road: '+ id + '</span>' +
+                '</td>' +
+                '<td width = "80px" style="padding-bottom: 1ex">' +
+                '<button  class="btn btn-success btn-xs" style="font-size: x-small">'+ direction +'</button>' +
+                '</td>'+
+                '<td width = "70px" style="padding-bottom: 1ex">' +
+                '<span>'+ volume +'</span>' +
+                '</td>' +
+                '<td width = "70px" style="padding-bottom: 1ex">' +
+                '<span>'+avgTime+'</span>' +
+                '</td>'+
+                '</tr>';
+
+            console.log(tr);
+            return tr;
+        }
+
+        function drawClock() {
+            drawFace(ctx, radius);
+            drawNumbers(ctx, radius);
+            drawTime(ctx, radius);
+        }
+
+        function drawFace(ctx, radius) {
+            var grad;
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, 2*Math.PI);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            grad = ctx.createRadialGradient(0,0,radius*0.95, 0,0,radius*1.05);
+            grad.addColorStop(0, '#333');
+            grad.addColorStop(0.5, 'white');
+            grad.addColorStop(1, '#333');
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = radius*0.1;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0, 0, radius*0.1, 0, 2*Math.PI);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+        }
+
+        function drawNumbers(ctx, radius) {
+            var ang;
+            var num;
+            ctx.font = radius*0.15 + "px arial";
+            ctx.textBaseline="middle";
+            ctx.textAlign="center";
+            for(num = 1; num < 13; num++){
+                ang = num * Math.PI / 6;
+                ctx.rotate(ang);
+                ctx.translate(0, -radius*0.85);
+                ctx.rotate(-ang);
+                ctx.fillText(num.toString(), 0, 0);
+                ctx.rotate(ang);
+                ctx.translate(0, radius*0.85);
+                ctx.rotate(-ang);
+            }
+        }
+
+        function drawTime(ctx, radius){
+            var now = new Date();
+            var hour = now.getHours();
+            var minute = now.getMinutes();
+            var second = now.getSeconds();
+            //hour
+            hour=hour%12;
+            hour=(hour*Math.PI/6)+
+                (minute*Math.PI/(6*60))+
+                (second*Math.PI/(360*60));
+            drawHand(ctx, hour, radius*0.5, radius*0.07);
+            //minute
+            minute=(minute*Math.PI/30)+(second*Math.PI/(30*60));
+            drawHand(ctx, minute, radius*0.8, radius*0.07);
+            // second
+            second=(second*Math.PI/30);
+            drawHand(ctx, second, radius*0.9, radius*0.02);
+        }
+
+        function drawHand(ctx, pos, length, width) {
+            ctx.beginPath();
+            ctx.lineWidth = width;
+            ctx.lineCap = "round";
+            ctx.moveTo(0,0);
+            ctx.rotate(pos);
+            ctx.lineTo(0, -length);
+            ctx.stroke();
+            ctx.rotate(-pos);
+        }
+
+        // baidu API
+        let map = new BMap.Map("map");    // 创建Map实例
+        map.centerAndZoom(new BMap.Point(120.912739,31.994879), 14);  // 初始化地图,设置中心点坐标和地图级别
+        map.enableScrollWheelZoom(true); // 开启鼠标滚轮缩放
+        let bottom_right_navigation = new BMap.NavigationControl({
+            anchor: BMAP_ANCHOR_BOTTOM_RIGHT,
+            offset: new BMap.Size(10, 90)
+        });
+        map.addControl(bottom_right_navigation);
+        // map.setMapStyle({style: 'light'});
+        map.setMapStyle({styleJson:mapStyle});
+
+        $.ajax({
+            url: URL_PREFIX+CAMERA_FILE,
+            dataType:'json',
+            cache: false,
+            type: "GET",
+            success: function(res) {
+
+                //display tag
+                res.forEach((obj) => {
+                    var point = new BMap.Point(obj.location.lng, obj.location.lat);
+                    vertexLookup.set(obj.id, obj);
+                    var marker = new BMap.Marker(point);  // 创建标注
+                    map.addOverlay(marker);              // 将标注添加到地图中
+                    marker.addEventListener("click", takeAction);
+
+                    function takeAction() {
+
+                        if (curRoads.length !== 0){
+                            curRoads.forEach((polyline)=>{
+                                polyline.setStrokeColor("white");
+                            })
+                            curRoads = [];
+
+                            labels.forEach((label)=>{
+                                label.remove();
+                            })
+                            labels = []
+                        }
+
+                        var curCam = marker.getPosition();       //获取marker的位置
+
+                        if (curCircle) {
+                            curCircle.remove();
+                        }
+
+                        curCircle = new BMap.Circle(point, 100, {
+                            fillColor:"red",
+                            strokeColor:"red",
+                            fillOpacity:1
+                        });
+                        map.addOverlay(curCircle);
+
+                        let counter = 0;
+                        allRoads.forEach((line) =>{
+                            var pointArr = line.getPath();
+                            var contain = false;
+                            var BreakException = {};
+                            try {
+                                pointArr.forEach((point) => {
+                                    if (point.lat === curCam.lat &&
+                                        point.lng === curCam.lng) {
+                                        contain = true;
+                                        curRoads.push(line);
+                                        throw BreakException;
+                                    }
+                                });
+                            }
+                            catch(e){}
+
+                            if (contain){
+                                var lat = 0;
+                                var lng = 0;
+
+                                pointArr.forEach((point) =>{
+                                    lat += point.lat;
+                                    lng += point.lng;
+                                });
+
+                                var pos = new BMap.Point(lng / 2, lat / 2);
+                                var label = new BMap.Label("road:"+ counter,
+                                    {
+                                        position: pos
+                                    });
+
+                                label.setStyle({
+                                    color : "white",
+                                    fontSize : "14px"
+
+                                });
+                                map.addOverlay(label);
+                                labels.push(label);
+                                counter++;
+                            }
+                        });
+
+                        curRoads.forEach((polyline)=>{
+                            polyline.setStrokeColor("red");
+                        })
+                    }
+                })
+
+                $.ajax({
+                    url: URL_PREFIX+EDGE_FILE,
+                    dataType:'json',
+                    cache: false,
+                    type: "GET",
+                    success: function(res) {
+
+                        res.forEach((edge) =>{
+                            var cam1 = vertexLookup.get(edge.cam1);
+                            var cam2 = vertexLookup.get(edge.cam2);
+
+                            var polyline = new BMap.Polyline([
+                                new BMap.Point(cam1.location.lng, cam1.location.lat),
+                                new BMap.Point(cam2.location.lng, cam2.location.lat),
+
+                            ], {strokeColor:"white", strokeWeight:3, strokeOpacity:1});   //创建折线
+
+                            polyline.addEventListener("click", function(e){
+                                if (curHighlight) {
+                                    curHighlight.setStrokeColor("white");
+                                }
+
+                                this.setStrokeColor("red");
+                                curHighlight = this;
+
+                                //todo display statistics
+                            });
+
+                            map.addOverlay(polyline);   //增加折线
+                            allRoads.push(polyline);
+                        })
+                    },
+
+                    error: function(xhr) {
+                        console.log("error message: ");
+                        console.log(xhr);
+                    }
+                });
+            },
+
+            error: function(xhr) {
+                console.log("error message: ");
+                console.log(xhr);
+            }
+        });
+
+        let clusterize_ret = new Clusterize({
+            scrollId: 'ret_scrollArea',
+            contentId: 'ret_contentArea',
+            rows_in_block:100,          // displayOnInit 100 records each time
+            blocks_in_cluster:2,
+        });
+
+        clusterize_ret.append(toListRet(0,"incoming", 73, "373s"));
+        clusterize_ret.append(toListRet(0,"outgoing", 34, "336s"));
+
+        var svg = d3.select("svg"),
+            margin = {top: 10, right: 30, bottom: 30, left: 40},
+            width = +svg.attr("width") - margin.left - margin.right,
+            height = +svg.attr("height") - margin.top - margin.bottom;
+
+        var x = d3.scaleBand().rangeRound([0, width]).padding(0.55),
+            y = d3.scaleLinear().rangeRound([height, 0]);
+
+        var g = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        d3.tsv("data.tsv", function(d) {
+            d.frequency = +d.frequency;
+            return d;
+        }, function(error, data) {
+            if (error) throw error;
+            console.log(data);
+            x.domain(data.map(function(d) { return d.letter; }));
+            y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+
+            g.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x));
+
+            g.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y).ticks(10))
+                .append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 6)
+                .attr("dy", "0.71em")
+                .attr("text-anchor", "end")
+                .text("Frequency");
+
+            g.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return x(d.letter); })
+                .attr("y", function(d) { return y(d.frequency); })
+                .attr("width", x.bandwidth())
+                .attr("height", function(d) { return height - y(d.frequency); });
+        });
+    });
+</script>
+</body>
+</html>

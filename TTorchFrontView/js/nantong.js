@@ -1,57 +1,23 @@
 const APP_NAME = "/TTorchServer";
 const URL_PREFIX = "http://43.240.96.2" + APP_NAME;
 const TRAJ_ID_API = "/API/ID";
-const API_SIM = "/API/TKQ";
 const API_MULTI = "/API/MULTI";
-const INIT_FILE = "/data/init.txt";
-const BEIJING_FILE = "/data/beijing.txt";
-const PORTO_FILE = "/data/porto.txt";
-const BEIJING = "b";
-const PORTO = "p";
-
-// current city
-let curCity = PORTO;
+const TRAFFIC_NETWORK_FILE = "/data/trafficNetwork.txt";
+const CAMERA_FILE = "/data/tags.txt";
+const EDGE_FILE = "/data/edge.txt";
 
 // for remember current state
-let counter_line = 0;
-let counter_st = 0;
-let counter_rect = 0;
+camPairArray = [];
 
-let line_label = [];
-let line_polygons = [];
-let rect_label = [];
-let rect_polygons = [];
 
 //variables for displaying trajectory over mapV
-let ids = [];
-let map_data = [];
-let slot = [];
-let hide = false;
+var curHighlight;
+var curCircle;
+var allRoads = [];
+var curRoads = [];
+var labels = [];
 
-let reprepLayer;
-let reprepAniLayer;
-let reprepData;
-let reprepAniData;
-
-let rawLayer;
-let mappedLayer;
-let rawData;
-let mappedData;
-
-let lineLayer;
-let animationLayer;
-let trajData;
-let timeData;
-
-let singleLineLayer;
-let singleAnimationLayer;
-let singleTrajData;
-let singleTimeData;
-
-let firstTime = true;
-let first = true;
-let maxClusterId;
-let curClusterId = 0;
+var vertexLookup = new Map();
 
 //mapv drawing options
 let mapv_option_line_red = {
